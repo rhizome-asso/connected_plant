@@ -1,7 +1,6 @@
 from analogio import AnalogIn
 import board
 import digitalio
-import errno
 import math
 import neopixel
 import time
@@ -10,7 +9,7 @@ import time
 CALLIBRATION = 1
 MEASUREMENT = 2
 
-run_mode = CALLIBRATION
+run_mode = MEASUREMENT
 
 # pins
 led = digitalio.DigitalInOut(board.D13)
@@ -28,55 +27,68 @@ Vout = 3.3  # Volts
 B = 3470
 
 # files
-csv_filenames = ['temp_sensor_calibration.csv',
-                 'plant_envdata.csv']
+csv_filenames = {
+        CALLIBRATION: 'temp_sensor_calibration.csv',
+        MEASUREMENT: 'plant_envdata.csv',
+        }
 
 # colors
-nocolor = [0, 0, 0]
-red = [255, 0, 0]
-green = [0, 255, 0]
-blue = [0, 0, 255]
-yellow = [0, 255, 255]
+RED = (0x10, 0, 0)
+YELLOW = (0x10, 0x10, 0)
+GREEN = (0, 0x10, 0)
+AQUA = (0, 0x10, 0x10)
+BLUE = (0, 0, 0x10)
+PURPLE = (0x10, 0, 0x10)
+OFF = (0, 0, 0)
 
-# neopixel
+# neopixel - setup and test
 status = neopixel.NeoPixel(board.NEOPIXEL, 1, brightness=0.1)
-status[0] = blue
+status[0] = BLUE
 time.sleep(0.3)
-status[0] = nocolor
+status[0] = OFF
 
+# I/O errors
+
+ENOENT = 2 # no such file/directory
+ENOSPC = 28 # no space left
+EROFS =  30 # read-only filesystem
 
 error_codes = {
-    0: (red, 0.3),  # default
-    errno.ENOSPC: (red, 0.5),
-    errno.EROFS: (red, 0.1),
+    0: (RED, 0.3),  # default
+    ENOSPC: (RED, 0.5),
+    EROFS: (RED, 0.1),
 }
 
 def file_exists(filename):
     try:
         f = open(filename)
         f.close()
-    except IOError as e:
-        if e.args[0] == errno.ENOENT):
+    except OSError as e:
+        if e.args[0] == ENOENT:
             return False
         else:
             raise e
     return True
 
 def write_to_file(filename, row):
+    line =  ", ".join([str(e) for e in row])
     try:
         with open(filename, "a") as f:
-            f.write(", ".join([str(e) for e in row]) + "\n")
-        status[0] = green
+            f.write(line + "\n")
+        status[0] = GREEN
         time.sleep(0.1)
-        status[0] = nocolor
-    except IOError as e:
-        print("Error opening file:", fname)
-        response = error_codes.get(e.args[0], error_codes[0])
-        while True:
-            status[0] = response[0]
-            time.sleep(respone[1])
-            status[0] = nocolor
-            time.sleep(respone[1])
+        status[0] = OFF
+    except OSError as e:
+        if e.args[0] == EROFS:
+            print(line)
+        else:
+            print("Error (%d) opening file: %s"%(e.args[0], filename))
+            response = error_codes.get(e.args[0], error_codes[0])
+            while True:
+                status[0] = response[0]
+                time.sleep(response[1])
+                status[0] = OFF
+                time.sleep(response[1])
 
 
 def get_temperature(temp_pin):
@@ -105,17 +117,17 @@ def measurement_mode():
         temp1 = 0.
         temp2 = 0.
         light = 0.
-        status[0] = yellow
-        for i in range(nb_samples):
+        status[0] = YELLOW
+        for i in range(n_samples):
             temp1 = temp1 + get_temperature(sensor_temp_pin1)
             temp2 = temp2 + get_temperature(sensor_temp_pin2)
             light = light + get_light(sensor_light_pin)
             time.sleep(sample_delay)
-        status[0] = nocolor
+        status[0] = OFF
         # averaging the samples 
-        temp1 = temp1 / nb_samples
-        temp2 = temp2 / nb_samples
-        light = light / nb_samples
+        temp1 = temp1 / n_samples
+        temp2 = temp2 / n_samples
+        light = light / n_samples
         write_to_file(csv_filenames[MEASUREMENT], [temp1, temp2, light, restart])
         restart = 0
         # sleep for a long time! 
@@ -123,8 +135,8 @@ def measurement_mode():
 
 
 def callibration_mode():
-    n_samples = 3
-    delay = 0.1  # seconds
+    n_samples = 5
+    delay = 0.5  # seconds
     
     if not file_exists(csv_filenames[CALLIBRATION]):
         write_to_file(csv_filenames[CALLIBRATION], ["temperature 1", "temperature 2"])
@@ -132,14 +144,14 @@ def callibration_mode():
     while True:
         temp1 = 0.
         temp2 = 0.
-        status[0] = yellow
-        for i in range(nb_samples):
+        status[0] = YELLOW
+        for i in range(n_samples):
             temp1 = temp1 + get_temperature(sensor_temp_pin1)
             temp2 = temp2 + get_temperature(sensor_temp_pin2)
-        status[0] = nocolor
+        status[0] = OFF
         # averaging the samples 
-        temp1 = temp1 / nb_samples
-        temp2 = temp2 / nb_samples
+        temp1 = temp1 / n_samples
+        temp2 = temp2 / n_samples
         write_to_file(csv_filenames[CALLIBRATION], [temp1, temp2])
         # sleep for a bit 
         time.sleep(delay)
