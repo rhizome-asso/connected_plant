@@ -23,7 +23,7 @@ sensor_light_pin = AnalogIn(board.A0)
 # constants
 MAX_VAL = 65536
 R1 = 10500  # Ohms
-Vout = 3.3  # Volts
+Vin = 3.3  # Volts
 B = 3470
 
 # files
