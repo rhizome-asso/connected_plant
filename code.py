@@ -9,7 +9,7 @@ import time
 CALLIBRATION = 1
 MEASUREMENT = 2
 
-run_mode = MEASUREMENT
+run_mode = CALLIBRATION
 
 # pins
 led = digitalio.DigitalInOut(board.D13)
@@ -92,16 +92,16 @@ def write_to_file(filename, row):
 
 
 def get_temperature(temp_pin):
-    sensor_voltage = temp_pin.value * Vout / MAX_VAL
-    sensor_resistance = R1 * (Vout / sensor_voltage - 1)
-    temperature_kelvin = 1.0 / (
-        1.0 / 298.15 + 1.0 / B * math.log(sensor_resistance / 10000)
-    )
-    return temperature_kelvin - 273.15
+    # acquire pin value, calculate voltage, then resistance
+    # and finally temperature
+    # YOUR CODE 
+    return 0
 
 
 def get_light(temp_pin):
-    return sensor_light_pin.value * Vout / MAX_VAL
+    # acquire pin value, calculate volate and return it
+    # YOUR CODE
+    return 0
 
 
 def measurement_mode():
@@ -118,16 +118,9 @@ def measurement_mode():
         temp2 = 0.
         light = 0.
         status[0] = YELLOW
-        for i in range(n_samples):
-            temp1 = temp1 + get_temperature(sensor_temp_pin1)
-            temp2 = temp2 + get_temperature(sensor_temp_pin2)
-            light = light + get_light(sensor_light_pin)
-            time.sleep(sample_delay)
+        # we want to average over n_samples for temp1, temp2 and light
+        # YOUR CODE
         status[0] = OFF
-        # averaging the samples 
-        temp1 = temp1 / n_samples
-        temp2 = temp2 / n_samples
-        light = light / n_samples
         write_to_file(csv_filenames[MEASUREMENT], [temp1, temp2, light, restart])
         restart = 0
         # sleep for a long time! 
@@ -145,13 +138,9 @@ def callibration_mode():
         temp1 = 0.
         temp2 = 0.
         status[0] = YELLOW
-        for i in range(n_samples):
-            temp1 = temp1 + get_temperature(sensor_temp_pin1)
-            temp2 = temp2 + get_temperature(sensor_temp_pin2)
+        # we want to average over n_samples for temp1 and temp2
+        # YOUR CODE
         status[0] = OFF
-        # averaging the samples 
-        temp1 = temp1 / n_samples
-        temp2 = temp2 / n_samples
         write_to_file(csv_filenames[CALLIBRATION], [temp1, temp2])
         # sleep for a bit 
         time.sleep(delay)
