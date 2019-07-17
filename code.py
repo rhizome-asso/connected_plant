@@ -22,8 +22,8 @@ sensor_light_pin = AnalogIn(board.A0)
 
 # constants
 MAX_VAL = 65536
-R1 = 10500  # Ohms
-Vout = 3.3  # Volts
+R2 = 10500  # Ohms
+Vin = 3.3  # Volts
 B = 3470
 
 # files
@@ -92,8 +92,8 @@ def write_to_file(filename, row):
 
 
 def get_temperature(temp_pin):
-    sensor_voltage = temp_pin.value * Vout / MAX_VAL
-    sensor_resistance = R1 * (Vout / sensor_voltage - 1)
+    sensor_voltage = temp_pin.value * Vin / MAX_VAL
+    sensor_resistance = R2 * (Vin / sensor_voltage - 1)
     temperature_kelvin = 1.0 / (
         1.0 / 298.15 + 1.0 / B * math.log(sensor_resistance / 10000)
     )
@@ -101,7 +101,7 @@ def get_temperature(temp_pin):
 
 
 def get_light(temp_pin):
-    return sensor_light_pin.value * Vout / MAX_VAL
+    return sensor_light_pin.value * Vin / MAX_VAL
 
 
 def measurement_mode():
