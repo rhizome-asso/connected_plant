@@ -22,9 +22,10 @@ sensor_light_pin = AnalogIn(board.A0)
 
 # constants
 MAX_VAL = 65536
-R2 = 10500  # Ohms
-Vin = 3.3  # Volts
-B = 3470
+# FILL OUT THE VALUES
+R2 =   # Ohms
+Vin =  # Volts
+B = 
 
 # files
 csv_filenames = {
