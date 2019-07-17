@@ -21,10 +21,11 @@ sensor_temp_pin2 = AnalogIn(board.A2)
 sensor_light_pin = AnalogIn(board.A0)
 
 # constants
+# ADD THE MISSING VALUES
 MAX_VAL = 65536
-R1 = 10500  # Ohms
-Vin = 3.3  # Volts
-B = 3470
+R1 =   # Ohms
+Vin =  # Volts
+B = 
 
 # files
 csv_filenames = {
